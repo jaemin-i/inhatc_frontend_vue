@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dynamic Table with Vue.js and Session Storage</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>Dynamic Table</h1>
+    <button @click="addRow">Add Row</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(row, index) in tableData" :key="index">
+          <td>{{ row.name }}</td>
+          <td>{{ row.age }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        tableData: JSON.parse(sessionStorage.getItem('tableData')) || [],
+      },
+      methods: {
+        addRow() {
+          const name = prompt('Enter name:');
+          const age = prompt('Enter age:');
+
+          if (name && age) {
+            this.tableData.push({ name, age });
+            sessionStorage.setItem('tableData', JSON.stringify(this.tableData));
+          }
+        },
+      },
+    });
+  </script>
+</body>
+</html>

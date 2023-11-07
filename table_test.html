@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<header>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js";></script>
+</header>
+
+<body>
+    <div id="app">
+        <table>
+            <tr>
+                <th>
+                    <h4>num</h4>
+                </th>
+                <th>testCaseName</th>
+                <th>testProcedure</th>
+                <th>expect</th>
+            </tr>
+            <tr v-for="(item, idx) in items" :key="idx">
+                <td>
+                    <h4>{{idx+1}}</h4>
+                </td>
+                <td><input type="text" v-model="item.testCaseName"></td>
+                <td><textarea v-model="item.testProcedure"></textarea></td>
+                <td><input type="text" v-model="item.expect"></td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" value="행 추가" @click="addRow()"></input>
+                    <input type="submit" value="작성하기" @click="submit()">
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+<script>
+    const app = new Vue({
+        el: `#app`,
+        data: function () {
+            return {
+                items: []
+            }
+        },
+        methods: {
+            addRow() {
+                const content = this.items.length + 1
+                this.items.push({
+                    testCaseName: `${content}`,
+                    testProcedure: `${content}`,
+                    expect: `${content}`,
+                })
+            },
+            submit() {
+                alert(JSON.stringify(this.items))
+            }
+        }
+    })
+</script>
+
+</html>
