@@ -1,0 +1,34 @@
+table {
+    font-size: 18px;
+    width: 100%;
+    text-align: center;
+  }
+  thead {
+    color: #ffffff;
+  }
+  th {
+    background-color: #336699;
+    border-width: 1px #ffffff solid;
+  }
+  tbody td{
+    background-color: #bed5ed;
+    border-width: 1px #ffffff solid;
+  }
+  tfoot td {
+    background-color: #91a3b7;
+    border-width: 1px #ffffff solid;
+  }
+  #app button {
+    margin-left: 5px;
+    float: right;
+    background-color: #9a9a9b;
+    font-size: 18px;
+    border-color: #336699;
+    color: #ffffff;
+  }
+  input {
+    width:80%;
+  }
+  select {
+    width:80%;
+  }

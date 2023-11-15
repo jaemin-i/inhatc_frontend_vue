@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Front-end</title>
+  <style>
+    table {
+      font-size: 18px;
+      width: 100%;
+      text-align: center;
+    }
+    thead {
+      color: #ffffff;
+    }
+    th {
+      background-color: #336699;
+      border-width: 1px #ffffff solid;
+    }
+    tbody td{
+      background-color: #bed5ed;
+      border-width: 1px #ffffff solid;
+    }
+    tfoot td {
+      background-color: #91a3b7;
+      border-width: 1px #ffffff solid;
+    }
+    #app button {
+      margin-left: 5px;
+      float: right;
+      background-color: #9a9a9b;
+      font-size: 18px;
+      border-color: #336699;
+      color: #ffffff;
+    }
+    input {
+      width:80%;
+    }
+    select {
+      width:80%;
+    }
+  </style>
+</head>
+<body>
+<div>
+  <div id="app">
+    <form v-on:submit="save">
+    <h2 style="display:inline;">1학년</h2>
+    <!-- <button type="submit" v-on:click="save">저장</button> -->
+    <button type="submit">저장</button>
+    <button type="button" v-on:click="deleteRow">삭제</button>
+    <button type="button" v-on:click="insertRow">추가</button>
+    <div>
+      <table>
+        <colgroup> <!--테이블 열 간격 조절-->
+          <col style="width:3%">
+          <col style="width:7%">
+          <col style="width:7%">
+          <col style="width:15%">
+          <col style="width:7%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:10%">
+          <col style="width:7%">
+          <col style="width:7%">
+          <col style="width:7%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2">이수</th>
+            <th>필수</th>
+            <th>과목명</th>
+            <th>학점</th>
+            <th>출석점수</th>
+            <th>과제점수</th>
+            <th>중간고사</th>
+            <th>기말고사</th>
+            <th>총점</th>
+            <th>평균</th>
+            <th>성적</th>
+          </tr>
+        </thead>
+        <tbody v-for="(row, index) in tableData" :key="index">
+          <tr v-if="row.입력 == 'true'">
+            <td>
+              <input type="checkbox" v-model="row.선택">
+            </td>
+            <td>
+              <select name="subject" v-model="row.이수">
+                <option value="전공" selected>전공</option>
+                <option value="교양">교양</option>
+              </select>
+            </td>
+            <td>
+              <select name="isEssential" v-model="row.필수">
+                <option value="필수" selected>필수</option>
+                <option value="선택">선택</option>
+              </select>
+            </td>
+            <td><input type="text" v-model="row.과목명"></td>
+            <td>
+              <select name="credit" v-model="row.학점">
+                <option value="1" selected>1</option>
+                <option value="2" selected>2</option>
+                <option value="3" selected>3</option>
+              </select>
+            </td>
+            <td>
+              <span v-if="row.학점 == '1'"></span>
+              <span v-else><input type="number" min="0" max="20" v-model="row.출석점수" v-on:change="checkRange_20"></span>
+            </td>
+            <td>
+              <span v-if="row.학점 == '1'"></span>
+              <span v-else><input type="number" min="0" max="20" v-model="row.과제점수" v-on:change="checkRange_20"></span>
+            </td>
+            <td>
+              <span v-if="row.학점 == '1'"></span>
+              <span v-else><input type="number" min="0" max="30" v-model="row.중간고사" v-on:change="checkRange_30"></span>
+            </td>
+            <td>
+              <span v-if="row.학점 == '1'"></span>
+              <span v-else><input type="number" min="0" max="30" v-model="row.기말고사" v-on:change="checkRange_30"></span>
+            </td>
+            <td>
+              <span v-if="row.입력 == false">{{rowSum(row)}}</span>
+            </td>
+            <td></td>
+            <td>
+              <select name="grade" id="grade" v-if="row.학점 == '1'" v-model="row.성적">
+                <option value="P" selected>P</option>
+                <option value="NP">NP</option>
+              </select>
+              <span v-else v-bind:style="{color: calGrade(row) === 'F' ? 'red' : 'black'}">
+                <span v-if="row.입력 == false">{{calGrade(row)}}</span>
+              </span>
+            </td>
+          </tr>
+          <tr v-else>
+            <td>
+              <input type="checkbox" v-model="row.선택">
+            </td>
+            <td>{{row.이수}}</td>
+            <td>{{row.필수}}</td>
+            <td style="text-align: left; padding-left: 10px;">{{row.과목명}}</td>
+            <td>{{row.학점}}</td>
+            <td>{{row.출석점수}}</td>
+            <td>{{row.과제점수}}</td>
+            <td>{{row.중간고사}}</td>
+            <td>{{row.기말고사}}</td>
+            <td>{{row.총점}}</td>
+            <td>{{row.평균}}</td>
+            <td v-bind:style="{'color' : row.성적 == 'F' ? 'red' : 'black'}">{{row.성적}}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">합계</td>
+            <td>{{totalCredit}}</td>
+            <td>{{totalAttendance || ''}}</td>
+            <td>{{totalHomework || ''}}</td>
+            <td>{{totalMid || ''}}</td>
+            <td>{{totalFinal || ''}}</td>
+            <td>{{totalScore || ''}}</td>
+            <td>{{totalAvg || ''}}</td>
+            <td v-bind:style="{color: totalGrade === 'F' ? 'red' : 'black'}">
+              {{totalGrade}}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </form>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+<script>
+const app = Vue.createApp({
+  // el : 'class1', //태그
+  data() {
+    return {
+      tableData: [],
+      sessionData: sessionStorage.getItem('tableData'),
+      totalCredit: '',
+      totalAttendance: '',
+      totalHomework:'',
+      totalMid:'',
+      totalFinal:'',
+      totalScore:'',
+      totalAvg:'',
+      totalGrade:'',
+    }
+  },
+  methods: {
+    insertRow() { //입력에 true값을 기본으로 넣어줌 -> 추가 버튼을 누르면 새로 입력받는 행 출력(v-if)
+      var isInput = this.tableData.some(row => row.입력); //이미 입력받고 있는 행이 있는지 확인
+      if(isInput){
+        alert("현재 입력중인 행을 먼저 저장해주세요.")  
+      }else{
+        this.tableData.push({
+          선택: '',
+          이수: '전공',
+          필수: '필수',
+          과목명: '',
+          학점: '1',
+          출석점수: '',
+          과제점수: '',
+          중간고사: '',
+          기말고사: '',
+          총점: '',
+          평균: '',
+          성적: 'P',
+          입력: 'true'
+        });
+      }
+    },
+    deleteRow() {
+      if (this.tableData.length > 0) {
+        var selRows = this.tableData.filter(row => row.선택);
+        if (selRows.length > 0) {
+            var chkConfirm = confirm("선택된 " + selRows.length + "행을 삭제하시겠습니까?");
+            if (chkConfirm) {
+              this.tableData = this.tableData.filter(row => !row.선택);
+              sessionStorage.setItem('tableData', JSON.stringify(this.tableData));
+              this.totalCal();
+              alert("선택된 행이 삭제됐습니다.");
+            } else {
+              alert("다시 선택해주세요.");
+            }
+          } else {
+            alert("선택된 행이 없습니다.");
+          }
+      } else{
+        alert("삭제할 행이 없습니다.");
+      }
+    },
+    save(e) {
+      e.preventDefault(); // 새로고침 방지
+      var chkVali = false; // 저장 전 검증
+      var isInputing = this.tableData.filter(row => row.입력)
+
+      if(isInputing.length == 0){
+        alert("입력중인 행이 없습니다.")
+        chkVali = true;
+      }
+      else{
+        if(this.isExist()){
+          chkVali = true;
+          return;
+        }
+
+        // alert(JSON.stringify(this.tableData[0]));
+        this.tableData.forEach((row) => {
+          if(this.isEmpty(row)){
+            chkVali = true;
+            return;
+          }
+
+          row.과목명 = row.과목명.trim();
+          if (row.학점 != 1) {
+            row.총점 = this.rowSum(row)
+            row.성적 = this.calcGrade(row.총점)
+            row.입력 = false //입력 완료후 저장버튼 클릭 시 false로 변경, 인풋박스 없어지고 행의 데이터로 출력(v-else)
+          } 
+          else{
+            row.성적 = row.성적
+            row.입력 = false
+          }
+        });
+        if (!chkVali) {
+          this.totalCal();
+          this.sortTable();
+          alert("저장이 완료되었습니다.")
+          sessionStorage.setItem('tableData', JSON.stringify(this.tableData)); //세션스토리지로 테이블데이터 값 넣기
+        }
+      }
+    },
+    rowSum(row) { //각 행별 총점 계산
+      if (row.학점 != 1) {
+      var totScore = parseInt(row.출석점수) + parseInt(row.과제점수) + parseInt(row.중간고사) + parseInt(row.기말고사);
+       row.총점 = totScore;
+       return totScore;
+      } else {
+        row.총점 = ''; // 성적이 'P' 또는 'NP'인 경우에 총점이 필요 없으므로 공백 처리
+        return '';
+      }
+    },
+    calGrade(row) { //각 행별 성적 계산
+      if (row.학점 != 1) {
+        return this.calcGrade(this.rowSum(row));
+      } else {
+        return '';
+      }
+    },
+    calcGrade(score) { //성적 계산 메소드
+      if (isNaN(score) || score == 0){ // score가 NaN 일 때(아직 총점이 입력되지 않은경우) 공백으로 표시
+        return '';
+      }
+      if (score >= 95) {
+        return 'A+';
+      } else if (score >= 90) {
+        return 'A0';
+      } else if (score >= 85) {
+        return 'B+';
+      } else if (score >= 80) {
+        return 'B0';
+      } else if (score >= 75) {
+        return 'C+';
+      } else if (score >= 70) {
+        return 'C0';
+      } else if (score >= 65) {
+        return 'D+';
+      } else if (score >= 60) {
+       return 'D0';
+      } else {
+       return 'F';
+      }
+    },
+    totScore(index) { //각 열별 총합
+      var sum = 0;
+      this.tableData.forEach((row) => {
+          sum += parseInt(row[index] || 0);
+      })
+      return sum;
+    },
+    totAvg(score){
+      var counts = this.tableData.length
+      this.tableData.forEach((row) => {
+        if(row.학점 == 1){
+          --counts;
+        }
+      })
+      var avg = score / counts
+      if (isNaN(avg) || avg == 0){ // avg가 NaN 이거나(아직 평균계산이 안된경우) 0일경우 공백으로 표시
+        return '';
+      }
+      return avg.toFixed(0);
+    },
+    totalCal(){
+      this.totalCredit = this.totScore('학점');
+      this.totalAttendance = this.totScore('출석점수');
+      this.totalHomework = this.totScore('과제점수');
+      this.totalMid = this.totScore('중간고사');
+      this.totalFinal = this.totScore('기말고사');
+      this.totalScore = this.totScore('총점');
+      this.totalAvg = this.totAvg(this.totalScore);
+      this.totalGrade = this.calcGrade(this.totalAvg);
+    },
+    // 입력 예외처리
+    checkRange_20 : function(e){
+      const inputScore = e.target.value;
+      if(inputScore > 20 || inputScore < 0){
+        alert('입력범위 오류! 점수를 다시 입력해주세요.(입력범위 0~20)')
+        e.target.value = '';
+        e.target.focus();
+      }
+    },
+    checkRange_30 : function(e){
+      const inputScore = e.target.value;
+      if(inputScore > 30 || inputScore < 0){
+        alert('입력범위 오류! 점수를 다시 입력해주세요.(입력범위 0~30)')
+        e.target.focus();
+      }
+    },
+    isEmpty(row) {
+      if (row.입력 === 'true' && row.과목명 === '') {
+        alert("과목명을 입력해주세요.");
+        return true;
+      }
+      if (row.입력 === 'true' && row.학점 !== '1') {
+        if (row.출석점수 === '') {
+          alert("출석점수를 입력해주세요.");
+          return true;
+        }
+        if (row.과제점수 === '') {
+          alert("과제점수를 입력해주세요.");
+          return true;
+        }
+        if (row.중간고사 === '') {
+          alert("중간고사를 입력해주세요.");
+          return true;
+        }
+        if (row.기말고사 === '') {
+          alert("기말고사를 입력해주세요.");
+          return true;
+        }
+      }
+      return false;
+    },
+    // 과목명 중복체크
+    isExist() {
+      var tableList = JSON.parse(sessionStorage.getItem('tableData')) || [];
+      var inputingName = this.tableData[this.tableData.length - 1].과목명
+      let subList = tableList.map(row => row.과목명);
+      let isDuplicate = false;
+
+      for (let i = 0; i < subList.length; i++) {
+        if (inputingName === subList[i]) {
+          isDuplicate = true;
+          break;
+        }
+      }
+
+      if(isDuplicate){
+        alert("이미 존재하는 과목입니다.");
+      }
+      return isDuplicate;
+    },
+    // 정렬
+    sortTable(){
+      this.tableData.sort((a, b) => {
+      if (a.이수 === b.이수) { // 이수 > 필수 > 과목명 순으로 정렬
+        if (a.필수 === b.필수) {
+          return a.과목명.localeCompare(b.과목명); // localeCompare : 첫번째 문자열이 두번째 문자열보다 사전적 순서가 빠르면 -1, 같으면 0, 느리면 1 반환
+        }
+        return a.필수.localeCompare(b.필수);
+        }
+        return a.이수.localeCompare(b.이수);
+      });
+    },
+  },
+})
+
+app.mount('#app')
+</script>
+
+</body>
+</html>
